@@ -3,63 +3,86 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>🎯 P2 التوقيع المساحي - م. عمار يوسف</title>
+  <title>🎯 P2 التوقيع الذكي - م. عمار يوسف</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    :root{--main:#6366f1;--danger:#f43f5e;--ok:#10b981;--bg:#ffffff}
-    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left; overflow-x: hidden;}
-    nav{background:#1e293b; padding:10px; text-align:center; display:flex; justify-content:center; gap:8px;}
-    nav a{color:#fff; text-decoration:none; font-size:12px; font-weight:bold; background:rgba(255,255,255,0.1); padding:6px 10px; border-radius:5px;}
+    :root{--main:#6366f1;--danger:#ef4444;--ok:#10b981;--bg:#f8fafc}
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left;}
+    nav{background:#1e293b; padding:12px; text-align:center; display:flex; justify-content:center; gap:10px;}
+    nav a{color:#fff; text-decoration:none; font-size:14px; font-weight:bold; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:5px;}
     header{background:var(--main);color:#fff;padding:15px;text-align:center;}
     header h1{margin:0;font-size:24px;font-weight:900}
-    .container{padding:8px; box-sizing: border-box;}
-    .card{background:#fff; padding:12px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); margin-bottom:10px; border:2px solid #000;}
+    .container{max-width:980px;margin:10px auto;padding:0 8px}
+    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin-bottom:10px;border:2px solid #000}
     
-    /* تحسين التباين والوضوح الميداني */
-    .input{padding:12px; border:3px solid #000; border-radius:8px; width:100%; font-size:18px; font-weight:900; box-sizing:border-box; background:#ffffff !important; color:#000000 !important;}
-    
-    .btn{padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:16px; font-weight:900;}
+    /* البحث المطور */
+    .input{padding:12px; border:3px solid #000; border-radius:8px; width:100%; font-size:18px; font-weight:900; box-sizing:border-box; background:#fff !important; color:#000 !important;}
+    .search-container { position: relative; }
+    .search-results { 
+        position: absolute; top: 100%; left: 0; right: 0; 
+        background: #fff; border: 3px solid #000; max-height: 200px; 
+        overflow-y: auto; z-index: 1000; display: none;
+    }
+    .search-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; font-weight: 900; color: #000; }
+    .search-item:hover { background: #f0f9ff; }
+
+    .btn{padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:18px; font-weight:900;}
     .btn.main{background:#000;color:#fff}
     .btn.ok{background:var(--ok);color:#fff}
-    table{width:100%; border-collapse: collapse; table-layout: fixed;}
-    th, td { border: 2px solid #000; text-align: center; font-weight: 900; padding: 8px 2px;}
-    th { background: #eee; font-size: 11px; }
+    table{width:100%; border-collapse:collapse; margin-top:10px;}
+    th,td{border:2px solid #000; padding:10px 4px; text-align:center; font-weight:900; font-size:16px;}
+    th{background:#eee; font-size:12px;}
     .hidden { display: none !important; }
-    .summary-box { display: flex; justify-content: space-between; align-items: center; background: #f0f9ff; padding: 10px; border: 2px solid #000; font-weight: 900; }
   </style>
 </head>
 <body>
+
 <nav><a href="index.html">🏠 الرئيسية</a><a href="p1_survey.html">📐 الرفع</a><a href="p3_db_manager.html">🗄️ النقاط</a></nav>
 <header><h1>🎯 برنامج 2: التوقيع المساحي</h1><p>م. عمار يوسف</p></header>
+
 <div class="container">
+  <!-- الثوابت -->
   <div class="card">
-    <div id="stEdit">
-        <input id="stName" class="input" list="ptsList" placeholder="وقوف: ابحث..." style="margin-bottom:5px">
-        <div style="display:flex;gap:5px;"><input id="stX" class="input" type="number" placeholder="X"><input id="stY" class="input" type="number" placeholder="Y"></div>
-        <button onclick="toggle('st')" class="btn ok" style="width:100%;margin-top:8px;">✅ تثبيت</button>
-    </div>
-    <div id="stShow" class="summary-box hidden"><div>📍 <span id="txtStN"></span> | X:<span id="txtStX"></span> | Y:<span id="txtStY"></span></div><button onclick="toggle('st')" style="background:#000;color:#fff;border-radius:50%;padding:4px 8px;">✏️</button></div>
-  </div>
-
-  <div class="card">
-    <div id="bsEdit">
-        <input id="bsName" class="input" list="ptsList" placeholder="زيرو: ابحث..." style="margin-bottom:5px">
-        <div style="display:flex;gap:5px;"><input id="bsX" class="input" type="number" placeholder="X"><input id="bsY" class="input" type="number" placeholder="Y"></div>
-        <button onclick="toggle('bs')" class="btn ok" style="width:100%;margin-top:8px;">✅ تثبيت</button>
-    </div>
-    <div id="bsShow" class="summary-box hidden"><div>🎯 <span id="txtBsN"></span> | X:<span id="txtBsX"></span> | Y:<span id="txtBsY"></span></div><button onclick="toggle('bs')" style="background:#000;color:#fff;border-radius:50%;padding:4px 8px;">✏️</button></div>
-  </div>
-
-  <datalist id="ptsList"></datalist>
-
-  <div class="card">
-    <div style="display:flex; gap:5px;">
-        <div style="flex:2; display:flex; flex-direction:column; gap:5px;">
-            <input id="tgX" class="input" type="number" placeholder="X مطلوب" onkeypress="if(event.key==='Enter') document.getElementById('tgY').focus()" inputmode="decimal">
-            <input id="tgY" class="input" type="number" placeholder="Y مطلوب" onkeypress="if(event.key==='Enter') addInv()" inputmode="decimal">
+    <div id="stEdit" class="search-container">
+        <input id="stName" class="input" placeholder="نقطة الوقوف..." autocomplete="off">
+        <div id="stResults" class="search-results"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input id="stX" class="input" type="number" placeholder="X"><input id="stY" class="input" type="number" placeholder="Y">
         </div>
-        <button onclick="addInv()" class="btn main" style="flex:0.8;font-size:20px">➕<br>حساب</button>
+        <button onclick="toggleLock('st')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت</button>
     </div>
+    <div id="stShow" class="card hidden" style="background:#f0f9ff; display:flex; justify-content:space-between; align-items:center; border:2px solid #000;">
+        <span style="font-weight:900">📍 <span id="txtStN"></span> (X:<span id="txtStX"></span>)</span>
+        <button onclick="toggleLock('st')" class="btn" style="background:#000; color:#fff; border-radius:50%; padding:5px 12px;">✏️</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="bsEdit" class="search-container">
+        <input id="bsName" class="input" placeholder="نقطة الزيرو..." autocomplete="off">
+        <div id="bsResults" class="search-results"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input id="bsX" class="input" type="number" placeholder="X"><input id="bsY" class="input" type="number" placeholder="Y">
+        </div>
+        <button onclick="toggleLock('bs')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت</button>
+    </div>
+    <div id="bsShow" class="card hidden" style="background:#f0f9ff; display:flex; justify-content:space-between; align-items:center; border:2px solid #000;">
+        <span style="font-weight:900">🎯 <span id="txtBsN"></span> (X:<span id="txtBsX"></span>)</span>
+        <button onclick="toggleLock('bs')" class="btn" style="background:#000; color:#fff; border-radius:50%; padding:5px 12px;">✏️</button>
+    </div>
+  </div>
+
+  <!-- التوقيع -->
+  <div class="card">
+    <div id="tgEdit" class="search-container">
+        <input id="tgName" class="input" placeholder="بحث عن نقطة للتوقيع..." autocomplete="off">
+        <div id="tgResults" class="search-results"></div>
+    </div>
+    <div style="display:flex; gap:5px; margin-top:5px;">
+        <input id="tgX" class="input" type="number" placeholder="X مطلوب">
+        <input id="tgY" class="input" type="number" placeholder="Y مطلوب">
+    </div>
+    <button onclick="addInv()" class="btn main" style="width:100%; margin-top:10px;">➕ حساب HD/HR</button>
   </div>
 
   <div class="card">
@@ -74,7 +97,6 @@
 
 <script>
     const GRAD = 200 / Math.PI;
-    const fixX = (v) => -Math.abs(parseFloat(v || 0));
     let trgs = [];
 
     function inv(sx, sy, bx, by, tx, ty) {
@@ -84,56 +106,73 @@
     }
 
     function addInv() {
-        const txIn = document.getElementById("tgX"), tyIn = document.getElementById("tgY");
-        const tx = fixX(txIn.value), ty = parseFloat(tyIn.value);
+        const tx = parseFloat(document.getElementById("tgX").value);
+        const ty = parseFloat(document.getElementById("tgY").value);
         if(isNaN(tx) || isNaN(ty)) return;
-        const sx = fixX(document.getElementById("stX").value), sy = parseFloat(document.getElementById("stY").value || 0);
-        const bx = fixX(document.getElementById("bsX").value), by = parseFloat(document.getElementById("bsY").value || 0);
+        const sx = parseFloat(document.getElementById("stX").value || 0);
+        const sy = parseFloat(document.getElementById("stY").value || 0);
+        const bx = parseFloat(document.getElementById("bsX").value || 0);
+        const by = parseFloat(document.getElementById("bsY").value || 0);
         const res = inv(sx, sy, bx, by, tx, ty);
         trgs.push({ x: tx, y: ty, d: res.d, r: res.r });
-        render(); txIn.value = ""; tyIn.value = ""; txIn.focus();
+        render();
+        document.getElementById("tgName").value=""; document.getElementById("tgX").value=""; document.getElementById("tgY").value="";
     }
 
     function render() {
-        document.getElementById("resBody").innerHTML = trgs.map((t, i) => `<tr><td>${i+1}</td><td>${t.x.toFixed(2)}</td><td>${t.y.toFixed(2)}</td><td style="color:red;">${t.d.toFixed(2)}</td><td>${t.r.toFixed(4)}</td></tr>`).join("");
+        document.getElementById("resBody").innerHTML = trgs.map((t, i) => `<tr><td>${i+1}</td><td>${t.x.toFixed(2)}</td><td>${t.y.toFixed(2)}</td><td style="color:red">${t.d.toFixed(2)}</td><td>${t.r.toFixed(4)}</td></tr>`).join("");
     }
 
-    function toggle(id) {
+    function toggleLock(id) {
         const e = document.getElementById(id + 'Edit'), s = document.getElementById(id + 'Show');
         if(e.classList.contains('hidden')) { e.classList.remove('hidden'); s.classList.add('hidden'); }
         else {
-            const n = document.getElementById(id + 'Name').value, x = document.getElementById(id + 'X').value, y = document.getElementById(id + 'Y').value;
-            if(!n || !x || !y) return alert("البيانات ناقصة");
-            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'N').innerText = n;
-            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'X').innerText = fixX(x).toFixed(2);
-            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'Y').innerText = parseFloat(y).toFixed(2);
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'N').innerText = document.getElementById(id + 'Name').value;
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'X').innerText = document.getElementById(id + 'X').value;
             e.classList.add('hidden'); s.classList.remove('hidden');
         }
     }
 
     window.onload = () => {
-        ["stName", "bsName"].forEach(id => {
-            const el = document.getElementById(id);
-            el.oninput = (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                const ptsDl = document.getElementById("ptsList");
-                const otherFieldId = (id === "stName") ? "bsName" : "stName";
-                const otherValue = document.getElementById(otherFieldId).value.toLowerCase().trim();
-                if (query.length < 1) { ptsDl.innerHTML = ""; return; }
+        const searchConfigs = [
+            { id: 'stName', res: 'stResults', oth: 'bsName', pre: 'st' },
+            { id: 'bsName', res: 'bsResults', oth: 'stName', pre: 'bs' },
+            { id: 'tgName', res: 'tgResults', oth: '', pre: 'tg' }
+        ];
+
+        searchConfigs.forEach(conf => {
+            const input = document.getElementById(conf.id);
+            const resDiv = document.getElementById(conf.res);
+
+            input.addEventListener('input', () => {
+                const query = input.value.toLowerCase().trim();
+                const otherVal = conf.oth ? document.getElementById(conf.oth).value.toLowerCase().trim() : "";
+                if (!query) { resDiv.style.display = 'none'; return; }
+
                 const db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
-                // الفلترة الذكية لمنع تكرار النقطة المختارة في الحقل الآخر
                 const matches = db.filter(p => {
-                    const nameLower = p.name.toLowerCase();
-                    return nameLower.includes(query) && nameLower !== otherValue;
+                    const n = String(p.name).toLowerCase();
+                    return n.includes(query) && n !== otherVal;
                 });
-                ptsDl.innerHTML = matches.slice(0, 15).map(p => `<option value="${p.name}">`).join("");
-            };
-            el.onchange = (e) => {
-                const p = JSON.parse(localStorage.getItem("pointsDB") || "[]").find(x => x.name === e.target.value);
-                if(p) { const pr = id.slice(0,2); document.getElementById(pr + "X").value = Math.abs(p.x); document.getElementById(pr + "Y").value = p.y; }
-            };
+
+                if (matches.length > 0) {
+                    resDiv.innerHTML = matches.slice(0, 10).map(p => `
+                        <div class="search-item" onclick="selectPt('${conf.id}','${conf.res}','${conf.pre}','${p.name}',${p.x},${p.y})">
+                            ${p.name}
+                        </div>
+                    `).join("");
+                    resDiv.style.display = 'block';
+                } else { resDiv.style.display = 'none'; }
+            });
         });
     };
+
+    function selectPt(inpId, resId, pre, name, x, y) {
+        document.getElementById(inpId).value = name;
+        document.getElementById(pre + 'X').value = x;
+        document.getElementById(pre + 'Y').value = y;
+        document.getElementById(resId).style.display = 'none';
+    }
 </script>
 </body>
 </html>

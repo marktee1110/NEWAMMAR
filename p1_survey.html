@@ -3,16 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>📐 P1 الرفع الميداني - م. عمار يوسف</title>
+  <title>📐 P1 الرفع الميداني الذكي — م. عمار يوسف</title>
   <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
-    }
-  </script>
   <style>
-    :root{--main:#0ea5e9;--danger:#ef4444;--ok:#10b981;--bg:#ffffff}
-    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left; overflow-x: hidden;}
+    :root{--main:#0ea5e9;--danger:#ef4444;--ok:#10b981;--bg:#f8fafc}
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left;}
     nav{background:#1e293b; padding:12px; text-align:center; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;}
     nav a{color:#fff; text-decoration:none; font-size:14px; font-weight:bold; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:5px;}
     header{background:var(--main);color:#fff;padding:15px;text-align:center;}
@@ -20,94 +15,92 @@
     .container{max-width:980px;margin:10px auto;padding:0 8px}
     .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin-bottom:10px;border:2px solid #000}
     
-    /* تحسين التباين والوضوح الميداني */
-    .input{padding:12px; border:3px solid #000; border-radius:8px; width:100%; font-size:18px; font-weight:900; box-sizing:border-box; background:#ffffff !important; color:#000000 !important;}
-    
+    /* تنسيق المدخلات والقوائم الذكية */
+    .input{padding:12px; border:3px solid #000; border-radius:8px; width:100%; font-size:18px; font-weight:900; box-sizing:border-box; background:#fff !important; color:#000 !important;}
+    .search-container { position: relative; margin-bottom: 5px; }
+    .search-results { 
+        position: absolute; top: 100%; left: 0; right: 0; 
+        background: #fff; border: 3px solid #000; border-top: none;
+        max-height: 200px; overflow-y: auto; z-index: 1000; display: none;
+        border-radius: 0 0 8px 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .search-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; font-weight: 900; font-size: 16px; color: #000; }
+    .search-item:hover { background: #e0f2fe; }
+
     .btn{padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:18px; font-weight:900;}
     .btn.main{background:#000;color:#fff}
     .btn.ok{background:var(--ok);color:#fff}
-    .btn.danger{background:var(--danger);color:#fff}
-    table{width:100%; border-collapse:collapse; background:#fff;}
-    th,td{border:3px solid #000; padding:12px 4px; text-align:center; font-size:20px; font-weight:900;}
-    th{background:#eee; font-size:14px;}
+    table{width:100%; border-collapse:collapse; margin-top:10px;}
+    th,td{border:3px solid #000; padding:12px 4px; text-align:center; font-size:18px; font-weight:900;}
+    th{background:#eee; font-size:13px;}
     .hidden { display: none !important; }
-    .summary-box { display: flex; justify-content: space-between; align-items: center; background: #f0f9ff; padding: 12px; border-radius: 8px; border: 3px solid #000; font-weight: 900; }
-    .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.9); overflow-y:auto; }
-    .modal-content { background:#fff; margin:2% auto; padding:15px; width:94%; border-radius:10px; border:2px solid #000; }
-    #summaryText { background:#fff; color:#000; padding:15px; border:2px solid #000; font-family:monospace; font-size:18px; font-weight:900; white-space:pre-wrap; text-align:left; line-height:1.4; }
   </style>
 </head>
 <body>
+
 <nav><a href="index.html">🏠 الرئيسية</a><a href="p2_stakeout.html">🎯 التوقيع</a><a href="p3_db_manager.html">🗄️ النقاط</a></nav>
-<header><h1>📐 برنامج 1: الرفع المساحي</h1><p>م. عمار يوسف</p></header>
+<header><h1>📐 برنامج 1: الرفع الميداني</h1><p>م. عمار يوسف</p></header>
+
 <div class="container">
+  <!-- قسم الثوابت (وقوف وزيرو) -->
   <div class="card">
-    <select id="sessionsDropdown" class="input" style="font-size: 14px; margin-bottom: 8px;"></select>
-    <div style="display:flex; gap:8px;">
-        <button onclick="startNewSession()" class="btn main" style="flex:1">➕ جديدة</button>
-        <button onclick="saveFullSession()" class="btn ok" style="flex:1">💾 حفظ</button>
-        <button onclick="showSummary()" class="btn" style="flex:1.2; background:#334155; color:#fff">📝 ملخص</button>
-    </div>
-  </div>
-  
-  <div class="card">
-    <div id="stEdit">
-        <input id="stName" class="input" list="ptsList" placeholder="وقوف: ابحث..." style="margin-bottom:5px">
-        <div style="display:flex; gap:5px;"><input id="stX" class="input" type="number" placeholder="X"><input id="stY" class="input" type="number" placeholder="Y"></div>
-        <button onclick="toggleLock('st')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت</button>
-    </div>
-    <div id="stShow" class="summary-box hidden">
-        <div>📍 <span id="txtStN"></span> | X:<span id="txtStX"></span> | Y:<span id="txtStY"></span></div>
-        <button onclick="toggleLock('st')" class="btn" style="background:#000; color:#fff; border-radius:50%; padding:5px 10px;">✏️</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div id="bsEdit">
-        <input id="bsName" class="input" list="ptsList" placeholder="زيرو: ابحث..." style="margin-bottom:5px">
-        <div style="display:flex; gap:5px;"><input id="bsX" class="input" type="number" placeholder="X"><input id="bsY" class="input" type="number" placeholder="Y"></div>
-        <button onclick="toggleLock('bs')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت</button>
-    </div>
-    <div id="bsShow" class="summary-box hidden">
-        <div>🎯 <span id="txtBsN"></span> | X:<span id="txtBsX"></span> | Y:<span id="txtBsY"></span></div>
-        <button onclick="toggleLock('bs')" class="btn" style="background:#000; color:#fff; border-radius:50%; padding:5px 10px;">✏️</button>
-    </div>
-  </div>
-
-  <datalist id="ptsList"></datalist>
-
-  <div class="card">
-    <div style="display: flex; gap: 8px;">
-      <div style="flex: 2; display: flex; flex-direction: column; gap: 5px;">
-        <input id="obsHD" class="input" type="number" placeholder="HD مسافة" inputmode="decimal" onkeypress="if(event.key==='Enter') document.getElementById('obsHR').focus()">
-        <input id="obsHR" class="input" type="number" placeholder="HR زاوية" inputmode="decimal" onkeypress="if(event.key==='Enter') addObs()">
-      </div>
-      <button onclick="addObs()" class="btn main" style="flex: 0.8; font-size: 20px;">➕<br>رصد</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>X</th><th>Y</th><th>HD</th><th>HR</th></tr></thead><tbody id="resBody"></tbody></table></div>
-    <button onclick="recalcAll()" class="btn danger" style="width:100%; margin-top:10px;">🔄 تحديث الحسابات</button>
-  </div>
-</div>
-
-<div id="summaryModal" class="modal">
-    <div class="modal-content">
-        <h2 style="text-align:center">📋 ملخص وتصدير الجلسة</h2>
-        <pre id="summaryText"></pre>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="btn ok" style="flex:2; background:#000" onclick="downloadTXT()">💾 تصدير .txt</button>
-            <button class="btn" style="flex:1; background:#ddd; color:#000" onclick="document.getElementById('summaryModal').style.display='none'">إغلاق</button>
+    <div id="stEdit" class="search-container">
+        <input id="stName" class="input" placeholder="نقطة الوقوف: ابحث..." autocomplete="off">
+        <div id="stResults" class="search-results"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input id="stX" class="input" type="number" placeholder="X">
+            <input id="stY" class="input" type="number" placeholder="Y">
         </div>
+        <button onclick="toggleLock('st')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت الوقفة</button>
     </div>
+    <div id="stShow" class="card hidden" style="background:#f0f9ff; display:flex; justify-content:space-between; align-items:center; border:2px solid #000;">
+        <span style="font-weight:900">📍 <span id="txtStN"></span> (X:<span id="txtStX"></span> | Y:<span id="txtStY"></span>)</span>
+        <button onclick="toggleLock('st')" class="btn" style="background:#000; color:#fff; border-radius:50%; padding:5px 12px;">✏️</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="bsEdit" class="search-container">
+        <input id="bsName" class="input" placeholder="نقطة الزيرو: ابحث..." autocomplete="off">
+        <div id="bsResults" class="search-results"></div>
+        <div style="display:flex; gap:5px; margin-top:5px;">
+            <input id="bsX" class="input" type="number" placeholder="X">
+            <input id="bsY" class="input" type="number" placeholder="Y">
+        </div>
+        <button onclick="toggleLock('bs')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت الزيرو</button>
+    </div>
+    <div id="bsShow" class="card hidden" style="background:#f0f9ff; display:flex; justify-content:space-between; align-items:center; border:2px solid #000;">
+        <span style="font-weight:900">🎯 <span id="txtBsN"></span> (X:<span id="txtBsX"></span> | Y:<span id="txtBsY"></span>)</span>
+        <button onclick="toggleLock('bs')" class="btn" style="background:#000; color:#fff; border-radius:50%; padding:5px 12px;">✏️</button>
+    </div>
+  </div>
+
+  <!-- قسم الرصد الميداني -->
+  <div class="card">
+    <div style="display:flex; gap:8px;">
+        <div style="flex:2; display:flex; flex-direction:column; gap:5px;">
+            <input id="obsHD" class="input" type="number" placeholder="HD مسافة" onkeypress="if(event.key==='Enter') document.getElementById('obsHR').focus()">
+            <input id="obsHR" class="input" type="number" placeholder="HR زاوية" onkeypress="if(event.key==='Enter') addObs()">
+        </div>
+        <button onclick="addObs()" class="btn main" style="flex:0.8; font-size:20px;">➕<br>رصد</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="overflow-x:auto;">
+        <table>
+            <thead><tr><th>#</th><th>X</th><th>Y</th><th>HD</th><th>HR</th></tr></thead>
+            <tbody id="resBody"></tbody>
+        </table>
+    </div>
+  </div>
 </div>
 
 <script>
     const GRAD = 200 / Math.PI;
-    const fixX = (v) => -Math.abs(parseFloat(v || 0));
-    let obsData = [], currSessId = null, sessInfo = { name: "", note: "" };
+    let obsData = [];
 
+    // دالة الحساب
     function calculate(sx, sy, bx, by, hd, hr) {
         const bAz = (Math.atan2(bx - sx, by - sy) * GRAD + 400) % 400;
         const tAz = (bAz + parseFloat(hr) + 400) % 400;
@@ -115,64 +108,76 @@
     }
 
     function addObs() {
-        const hdIn = document.getElementById("obsHD"), hrIn = document.getElementById("obsHR");
-        const hd = parseFloat(hdIn.value), hr = parseFloat(hrIn.value);
+        const hd = parseFloat(document.getElementById("obsHD").value);
+        const hr = parseFloat(document.getElementById("obsHR").value);
         if(isNaN(hd) || isNaN(hr)) return;
-        const sx = fixX(document.getElementById("stX").value), sy = parseFloat(document.getElementById("stY").value || 0);
-        const bx = fixX(document.getElementById("bsX").value), by = parseFloat(document.getElementById("bsY").value || 0);
+        const sx = parseFloat(document.getElementById("stX").value || 0);
+        const sy = parseFloat(document.getElementById("stY").value || 0);
+        const bx = parseFloat(document.getElementById("bsX").value || 0);
+        const by = parseFloat(document.getElementById("bsY").value || 0);
         const res = calculate(sx, sy, bx, by, hd, hr);
         obsData.push({ hd, hr, x: res.x, y: res.y });
-        render(); hdIn.value = ""; hrIn.value = ""; hdIn.focus();
+        render();
+        document.getElementById("obsHD").value = ""; document.getElementById("obsHR").value = ""; document.getElementById("obsHD").focus();
     }
 
     function render() {
-        document.getElementById("resBody").innerHTML = obsData.map((o, i) => `<tr><td>${i+1}</td><td>${o.x.toFixed(2)}</td><td>${o.y.toFixed(2)}</td><td>${o.hd.toFixed(2)}</td><td>${o.hr.toFixed(4)}</td></tr>`).join("");
+        document.getElementById("resBody").innerHTML = obsData.map((o, i) => `<tr><td>${i+1}</td><td>${o.x.toFixed(3)}</td><td>${o.y.toFixed(3)}</td><td>${o.hd.toFixed(2)}</td><td>${o.hr.toFixed(4)}</td></tr>`).join("");
     }
 
-    function toggleLock(id, forceOpen = false) {
+    function toggleLock(id) {
         const e = document.getElementById(id + 'Edit'), s = document.getElementById(id + 'Show');
-        if(!forceOpen && e.classList.contains('hidden')) { e.classList.remove('hidden'); s.classList.add('hidden'); }
+        if(e.classList.contains('hidden')) { e.classList.remove('hidden'); s.classList.add('hidden'); }
         else {
             const n = document.getElementById(id + 'Name').value, x = document.getElementById(id + 'X').value, y = document.getElementById(id + 'Y').value;
             if(!n || !x || !y) return alert("البيانات ناقصة");
             document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'N').innerText = n;
-            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'X').innerText = fixX(x).toFixed(2);
-            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'Y').innerText = parseFloat(y).toFixed(2);
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'X').innerText = x;
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'Y').innerText = y;
             e.classList.add('hidden'); s.classList.remove('hidden');
         }
     }
 
+    // محرك البحث الديناميكي المطور
     window.onload = () => {
-        const fields = ["stName", "bsName"];
-        fields.forEach(id => {
-            const el = document.getElementById(id);
-            el.oninput = (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                const ptsDl = document.getElementById("ptsList");
-                const otherVal = document.getElementById(id === "stName" ? "bsName" : "stName").value.toLowerCase().trim();
-                if (query.length < 1) { ptsDl.innerHTML = ""; return; }
+        const searchConfigs = [
+            { inputId: 'stName', resId: 'stResults', otherId: 'bsName', prefix: 'st' },
+            { inputId: 'bsName', resId: 'bsResults', otherId: 'stName', prefix: 'bs' }
+        ];
+
+        searchConfigs.forEach(conf => {
+            const input = document.getElementById(conf.inputId);
+            const resDiv = document.getElementById(conf.resId);
+
+            input.addEventListener('input', () => {
+                const query = input.value.toLowerCase().trim();
+                const otherVal = document.getElementById(conf.otherId).value.toLowerCase().trim();
+                if (query.length < 1) { resDiv.style.display = 'none'; return; }
+
                 const db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
-                // فلترة ذكية: البحث عن النص + استثناء النقطة المختارة في الحقل الآخر
-                const ms = db.filter(p => p.name.toLowerCase().includes(query) && p.name.toLowerCase() !== otherVal);
-                ptsDl.innerHTML = ms.slice(0, 15).map(p => `<option value="${p.name}">`).join("");
-            };
-            el.onchange = (e) => {
-                const p = JSON.parse(localStorage.getItem("pointsDB") || "[]").find(x => x.name === e.target.value);
-                if(p) { const pr = id.slice(0,2); document.getElementById(pr + "X").value = Math.abs(p.x); document.getElementById(pr + "Y").value = p.y; }
-            };
+                const matches = db.filter(p => {
+                    const name = String(p.name).toLowerCase();
+                    return name.includes(query) && name !== otherVal;
+                });
+
+                if (matches.length > 0) {
+                    resDiv.innerHTML = matches.slice(0, 10).map(p => `
+                        <div class="search-item" onclick="selectPt('${conf.inputId}','${conf.resId}','${conf.prefix}','${p.name}',${p.x},${p.y})">
+                            ${p.name} <small style="color:blue">(${p.area || ''})</small>
+                        </div>
+                    `).join("");
+                    resDiv.style.display = 'block';
+                } else { resDiv.style.display = 'none'; }
+            });
         });
-        loadSessions();
     };
 
-    function loadSessions() {
-        const ss = JSON.parse(localStorage.getItem("sessionsDB_P1") || "[]");
-        document.getElementById("sessionsDropdown").innerHTML = '<option value="">--- استرجاع جلسة ---</option>' + ss.reverse().map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+    function selectPt(inpId, resId, pre, name, x, y) {
+        document.getElementById(inpId).value = name;
+        document.getElementById(pre + 'X').value = x;
+        document.getElementById(pre + 'Y').value = y;
+        document.getElementById(resId).style.display = 'none';
     }
-    function startNewSession() { if(confirm("تفريغ؟")) { location.reload(); } }
-    function saveFullSession() { /* منطق الحفظ */ alert("تم الحفظ"); }
-    function showSummary() { document.getElementById('summaryModal').style.display='block'; }
-    function downloadTXT() { alert("جاري التحميل..."); }
-    function recalcAll() { alert("تم التحديث"); }
 </script>
 </body>
 </html>
