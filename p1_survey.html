@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ar" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>📐 P1 الرفع الميداني المتكامل — م. عمار يوسف</title>
+
+  <!-- إضافات الـ PWA للتعرف على التطبيق وتثبيته -->
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA Ready ✅'))
+          .catch(err => console.log('PWA Error ❌', err));
+      });
+    }
+  </script>
+
+  <style>
+    :root{--main:#0ea5e9;--danger:#ef4444;--ok:#10b981;--bg:#ffffff}
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left; overflow-x: hidden;}
+    nav{background:#1e293b; padding:12px; text-align:center; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;}
+    nav a{color:#fff; text-decoration:none; font-size:14px; font-weight:bold; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:5px;}
+    header{background:var(--main);color:#fff;padding:15px;text-align:center;}
+    header h1{margin:0;font-size:24px;font-weight:900}
+    .container{max-width:980px;margin:10px auto;padding:0 8px}
+    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin-bottom:10px;border:2px solid #000}
+    .input{padding:12px; border:2px solid #000; border-radius:8px; width:100%; font-size:18px; font-weight:900; box-sizing:border-box;}
+    .btn{padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:18px; font-weight:900;}
+    .btn.main{background:#000;color:#fff}
+    .btn.ok{background:var(--ok);color:#fff}
+    .btn.danger{background:var(--danger);color:#fff}
+    
+    table{width:100%; border-collapse:collapse; background:#fff;}
+    th,td{border:3px solid #000; padding:12px 4px; text-align:center; font-size:20px; font-weight:900; color:#000;}
+    th{background:#eee; font-size:14px;}
+    .hidden { display: none !important; }
+    .summary-box { display: flex; justify-content: space-between; align-items: center; background: #f0f9ff; padding: 12px; border-radius: 8px; border: 3px solid #000; font-weight: 900; font-size: 18px; }
+
+    .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.9); overflow-y:auto; }
+    .modal-content { background:#fff; margin:2% auto; padding:15px; width:94%; border-radius:10px; border:2px solid #000; }
+    #summaryText { background:#fff; color:#000; padding:15px; border:2px solid #000; font-family:monospace; font-size:18px; font-weight:900; white-space:pre-wrap; text-align:left; direction:ltr; line-height:1.4; }
+  </style>
+</head>
+<body>
+
+<nav>
+    <a href="p2_stakeout.html">🎯 التوقيع</a>
+    <a href="p3_db_manager.html">🗄️ النقاط</a>
+    <a href="p4_session_manager.html">📂 الجلسات</a>
+</nav>
+
+<header><h1>📐 برنامج 1: الرفع المساحي</h1><p>م. عمار يوسف</p></header>
+
+<div class="container">
+  <div class="card">
+    <select id="sessionsDropdown" class="input" style="font-size: 14px; margin-bottom: 8px;"></select>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+        <button onclick="startNewSession()" class="btn main" style="flex:1">➕ جديدة</button>
+        <button onclick="saveFullSession()" class="btn ok" style="flex:1">💾 حفظ</button>
+        <button onclick="showSummary()" class="btn" style="flex:1.2; background:#334155; color:#fff">📝 ملخص</button>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div id="stEdit">
+        <input id="stName" class="input" list="ptsList" placeholder="وقوف: ابحث..." style="margin-bottom:5px">
+        <div style="display:flex; gap:5px;"><input id="stX" class="input" type="number" placeholder="X"><input id="stY" class="input" type="number" placeholder="Y"></div>
+        <button onclick="toggleLock('st')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت</button>
+    </div>
+    <div id="stShow" class="summary-box hidden">
+        <div>📍 <span id="txtStN"></span> | X:<span id="txtStX"></span> | Y:<span id="txtStY"></span></div>
+        <button onclick="toggleLock('st')" class="btn" style="background:#000; color:#fff; border-radius:50%; border:none; padding:5px 10px; cursor:pointer">✏️</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="bsEdit">
+        <input id="bsName" class="input" list="ptsList" placeholder="زيرو: ابحث..." style="margin-bottom:5px">
+        <div style="display:flex; gap:5px;"><input id="bsX" class="input" type="number" placeholder="X"><input id="bsY" class="input" type="number" placeholder="Y"></div>
+        <button onclick="toggleLock('bs')" class="btn ok" style="width:100%; margin-top:8px;">✅ تثبيت</button>
+    </div>
+    <div id="bsShow" class="summary-box hidden">
+        <div>🎯 <span id="txtBsN"></span> | X:<span id="txtBsX"></span> | Y:<span id="txtBsY"></span></div>
+        <button onclick="toggleLock('bs')" class="btn" style="background:#000; color:#fff; border-radius:50%; border:none; padding:5px 10px; cursor:pointer">✏️</button>
+    </div>
+  </div>
+
+  <datalist id="ptsList"></datalist>
+
+  <div class="card">
+    <div style="display: flex; gap: 8px;">
+      <div style="flex: 2; display: flex; flex-direction: column; gap: 5px;">
+        <!-- التنقل بالكيبورد مدمج في الحقول -->
+        <input id="obsHD" class="input" type="number" placeholder="HD مسافة" inputmode="decimal" onkeypress="handleKey(event, 'obsHR')">
+        <input id="obsHR" class="input" type="number" placeholder="HR زاوية" inputmode="decimal" onkeypress="handleKey(event, 'addObs')">
+      </div>
+      <button onclick="addObs()" class="btn main" style="flex: 0.8; font-size: 20px;">➕<br>رصد</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>X</th><th>Y</th><th>HD</th><th>HR</th></tr></thead><tbody id="resBody"></tbody></table></div>
+    <button onclick="recalcAll()" class="btn danger" style="width:100%; margin-top:10px;">🔄 تحديث الحسابات</button>
+  </div>
+</div>
+
+<div id="summaryModal" class="modal">
+    <div class="modal-content">
+        <h2 style="text-align:center">📋 ملخص وتصدير الجلسة</h2>
+        <pre id="summaryText"></pre>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn ok" style="flex:2; background:#000" onclick="downloadTXT()">💾 تصدير .txt للهاتف</button>
+            <button class="btn" style="flex:1; background:#ddd; color:#000" onclick="document.getElementById('summaryModal').style.display='none'">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const GRAD = 200 / Math.PI;
+    const fixX = (v) => -Math.abs(parseFloat(v || 0));
+    let obsData = [], currSessId = null, sessInfo = { name: "", note: "" };
+
+    // وظيفة التنقل بالكيبورد الذكية
+    function handleKey(e, targetId) {
+        if (e.key === "Enter") {
+            if (targetId === 'addObs') addObs();
+            else document.getElementById(targetId).focus();
+        }
+    }
+
+    function calculate(sx, sy, bx, by, hd, hr) {
+        const bAz = (Math.atan2(bx - sx, by - sy) * GRAD + 400) % 400;
+        const tAz = (bAz + parseFloat(hr) + 400) % 400;
+        return { x: sx + hd * Math.sin(tAz / GRAD), y: sy + hd * Math.cos(tAz / GRAD) };
+    }
+
+    function addObs() {
+        const hdIn = document.getElementById("obsHD"), hrIn = document.getElementById("obsHR");
+        const hd = parseFloat(hdIn.value), hr = parseFloat(hrIn.value);
+        if(isNaN(hd) || isNaN(hr)) return;
+        const sx = fixX(document.getElementById("stX").value), sy = parseFloat(document.getElementById("stY").value || 0);
+        const bx = fixX(document.getElementById("bsX").value), by = parseFloat(document.getElementById("bsY").value || 0);
+        const res = calculate(sx, sy, bx, by, hd, hr);
+        obsData.push({ hd, hr, x: res.x, y: res.y });
+        render(); hdIn.value = ""; hrIn.value = ""; hdIn.focus();
+    }
+
+    function render() {
+        document.getElementById("resBody").innerHTML = obsData.map((o, i) => `<tr><td>${i+1}</td><td>${o.x.toFixed(2)}</td><td>${o.y.toFixed(2)}</td><td>${o.hd.toFixed(2)}</td><td>${o.hr.toFixed(4)}</td></tr>`).join("");
+    }
+
+    function showSummary() {
+        if (!sessInfo.name) { if (confirm("يجب حفظ الجلسة أولاً. حفظ؟")) { saveFullSession(); if(!sessInfo.name) return; } else return; }
+        let txt = `تقرير رفع: ${sessInfo.name}\nالوقوف: (X:${document.getElementById("stX").value}, Y:${document.getElementById("stY").value})\nالزيرو: (X:${document.getElementById("bsX").value}, Y:${document.getElementById("bsY").value})\n--------------------\n`;
+        obsData.forEach((o, i) => {
+            txt += `Point ${i+1}:\nxc = ${o.x.toFixed(2)}\nyc = ${o.y.toFixed(2)}\nHD = ${o.hd.toFixed(2)}\nHR = ${o.hr.toFixed(4)}\n--------------------\n`;
+        });
+        document.getElementById("summaryText").innerText = txt;
+        document.getElementById("summaryModal").style.display = "block";
+    }
+
+    function downloadTXT() {
+        const blob = new Blob([document.getElementById("summaryText").innerText], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Survey_${sessInfo.name}.txt`;
+        link.click();
+    }
+
+    function recalcAll() {
+        const sx = fixX(document.getElementById("stX").value), sy = parseFloat(document.getElementById("stY").value || 0);
+        const bx = fixX(document.getElementById("bsX").value), by = parseFloat(document.getElementById("bsY").value || 0);
+        obsData = obsData.map(o => { const res = calculate(sx, sy, bx, by, o.hd, o.hr); return { ...o, x: res.x, y: res.y }; });
+        render(); alert("تم التحديث ✅");
+    }
+
+    function toggleLock(id, forceOpen = false) {
+        const e = document.getElementById(id + 'Edit'), s = document.getElementById(id + 'Show');
+        if(!forceOpen && e.classList.contains('hidden')) { e.classList.remove('hidden'); s.classList.add('hidden'); }
+        else {
+            const n = document.getElementById(id + 'Name').value, x = document.getElementById(id + 'X').value, y = document.getElementById(id + 'Y').value;
+            if(!n || !x || !y) return alert("البيانات ناقصة");
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'N').innerText = n;
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'X').innerText = fixX(x).toFixed(2);
+            document.getElementById('txt' + id.charAt(0).toUpperCase() + id.slice(1) + 'Y').innerText = parseFloat(y).toFixed(2);
+            e.classList.add('hidden'); s.classList.remove('hidden');
+        }
+    }
+
+    function saveFullSession() {
+        if(obsData.length === 0) return alert("الجدول فارغ");
+        let n = prompt("الاسم:", sessInfo.name); if(!n) return;
+        let o = prompt("الوصف:", sessInfo.note) || "وصف"; sessInfo = { name: n, note: o };
+        let db = JSON.parse(localStorage.getItem("sessionsDB_P1") || "[]");
+        const s = { id: currSessId || Date.now(), name: n, note: o, date: new Date().toLocaleDateString('ar-EG'), st: { n: document.getElementById("stName").value, x: document.getElementById("stX").value, y: document.getElementById("stY").value }, bs: { n: document.getElementById("bsName").value, x: document.getElementById("bsX").value, y: document.getElementById("bsY").value }, data: obsData };
+        if(currSessId) db[db.findIndex(x => x.id === currSessId)] = s; else { currSessId = s.id; db.push(s); }
+        localStorage.setItem("sessionsDB_P1", JSON.stringify(db)); loadSessions(); alert("تم الحفظ ✅");
+    }
+
+    function loadSessions() {
+        const ss = JSON.parse(localStorage.getItem("sessionsDB_P1") || "[]");
+        document.getElementById("sessionsDropdown").innerHTML = '<option value="">--- استرجاع جلسة ---</option>' + ss.reverse().map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+    }
+
+    function startNewSession() { 
+        if(confirm("تفريغ؟")) { currSessId = null; sessInfo = { name: "", note: "" }; obsData = []; render(); document.querySelectorAll('.input').forEach(i => i.value = ""); document.querySelectorAll('.summary-box').forEach(b => b.classList.add('hidden')); document.querySelectorAll('[id$="Edit"]').forEach(e => e.classList.remove('hidden')); } 
+    }
+
+    document.getElementById("sessionsDropdown").onchange = function() {
+        const s = JSON.parse(localStorage.getItem("sessionsDB_P1") || "[]").find(x => x.id == this.value);
+        if(s) {
+            currSessId = s.id; sessInfo = { name: s.name, note: s.note };
+            document.getElementById("stName").value = s.st.n; document.getElementById("stX").value = s.st.x; document.getElementById("stY").value = s.st.y;
+            document.getElementById("bsName").value = s.bs.n; document.getElementById("bsX").value = s.bs.x; document.getElementById("bsY").value = s.bs.y;
+            obsData = s.data; toggleLock('st', true); toggleLock('bs', true); render();
+        }
+    };
+
+    window.onload = () => {
+        loadSessions();
+        ["stName", "bsName"].forEach(id => {
+            const el = document.getElementById(id);
+            el.oninput = (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const ptsDl = document.getElementById("ptsList");
+                if (query.length < 1) { ptsDl.innerHTML = ""; return; }
+                const db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
+                const kws = query.split(/\s+/);
+                const ms = db.filter(p => kws.every(kw => p.name.toLowerCase().includes(kw)));
+                ptsDl.innerHTML = ms.slice(0, 15).map(p => `<option value="${p.name}">`).join("");
+            };
+            el.onchange = (e) => {
+                const p = JSON.parse(localStorage.getItem("pointsDB") || "[]").find(x => x.name === e.target.value);
+                if(p) { const pr = id.slice(0,2); document.getElementById(pr + "X").value = Math.abs(p.x); document.getElementById(pr + "Y").value = p.y; }
+            };
+        });
+    };
+</script>
+</body>
+</html>

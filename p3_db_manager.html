@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ar" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>🗄️ P3 مدير قاعدة البيانات — م. عمار يوسف</title>
+
+  <!-- إضافات الـ PWA -->
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA Ready ✅'))
+          .catch(err => console.log('PWA Error ❌', err));
+      });
+    }
+  </script>
+
+  <!-- استدعاء مكتبة Excel (تحتاج إنترنت لأول مرة فقط ثم تحفظ في الكاش) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root{--main:#10b981;--danger:#ef4444;--bg:#ffffff}
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left;}
+    nav{background:#1e293b; padding:12px; text-align:center; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;}
+    nav a{color:#fff; text-decoration:none; font-size:14px; font-weight:bold; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:5px;}
+    header{background:var(--main);color:#fff;padding:15px;text-align:center;}
+    header h1{margin:0;font-size:24px;font-weight:900}
+    .container{max-width:980px;margin:10px auto;padding:0 8px}
+    .card{background:#fff;padding:15px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);margin-bottom:12px;border:2px solid #000}
+    .btn{padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:16px; font-weight:900; width:100%; margin-top:8px;}
+    .btn.ok{background:#000;color:#fff}
+    .btn.danger{background:var(--danger);color:#fff}
+    input[type="file"]{display:none;}
+    .file-label{display:block; background:#f3f4f6; border:2px dashed #000; padding:20px; text-align:center; border-radius:10px; cursor:pointer; font-weight:900;}
+    table{width:100%; border-collapse:collapse; margin-top:10px;}
+    th,td{border:2px solid #000; padding:10px 4px; text-align:center; font-size:16px; font-weight:900;}
+    th{background:#eee; font-size:12px;}
+    .stats{display:flex; justify-content:space-between; font-weight:900; padding:10px; background:#f0f9ff; border:2px solid #000; border-radius:8px; margin-bottom:10px;}
+  </style>
+</head>
+<body>
+
+<nav>
+    <a href="p1_survey.html">📐 الرفع</a>
+    <a href="p2_stakeout.html">🎯 التوقيع</a>
+    <a href="p4_session_manager.html">📂 الجلسات</a>
+</nav>
+
+<header><h1>🗄️ مدير قاعدة البيانات</h1><p>م. عمار يوسف</p></header>
+
+<div class="container">
+  <div class="card">
+    <label class="file-label" for="excelFile">📂 اضغط هنا لاختيار ملف Excel (Point, X, Y)</label>
+    <input type="file" id="excelFile" accept=".xlsx, .xls">
+    <button class="btn ok" onclick="saveToDB()">💾 حفظ النقاط في الذاكرة</button>
+  </div>
+
+  <div class="card">
+    <div class="stats">
+      <span>عدد النقاط الحالي:</span>
+      <span id="count">0</span>
+    </div>
+    <div style="overflow-x:auto; max-height:400px;">
+        <table>
+            <thead><tr><th>Point</th><th>X</th><th>Y</th><th>🗑️</th></tr></thead>
+            <tbody id="dbBody"></tbody>
+        </table>
+    </div>
+    <button class="btn danger" onclick="clearDB()">🗑️ مسح قاعدة البيانات بالكامل</button>
+  </div>
+</div>
+
+<script>
+    let tempPoints = [];
+
+    // قراءة ملف الإكسل
+    document.getElementById('excelFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            
+            // تحويل البيانات لمصفوفة نقاط (نتوقع: Name, X, Y)
+            tempPoints = json.slice(1).map(row => ({
+                name: String(row[0]),
+                x: parseFloat(row[1]),
+                y: parseFloat(row[2])
+            })).filter(p => p.name && !isNaN(p.x) && !isNaN(p.y));
+            
+            alert(`تم قرءاة ${tempPoints.length} نقطة. اضغط "حفظ" للتخزين.`);
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    function saveToDB() {
+        if(tempPoints.length === 0) return alert("لا توجد بيانات للاستيراد");
+        let db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
+        // دمج النقاط الجديدة مع القديمة ومنع التكرار بناءً على الاسم
+        const combined = [...db, ...tempPoints];
+        const unique = Array.from(new Set(combined.map(a => a.name)))
+                            .map(name => combined.find(a => a.name === name));
+        
+        localStorage.setItem("pointsDB", JSON.stringify(unique));
+        tempPoints = [];
+        renderDB();
+        alert("تم الحفظ في ذاكرة الهاتف بنجاح ✅");
+    }
+
+    function renderDB() {
+        const db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
+        document.getElementById("count").innerText = db.length;
+        document.getElementById("dbBody").innerHTML = db.map((p, i) => `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.x.toFixed(2)}</td>
+                <td>${p.y.toFixed(2)}</td>
+                <td><button onclick="deletePoint(${i})" style="border:none; color:red; background:none; font-weight:900;">🗑</button></td>
+            </tr>
+        `).join("");
+    }
+
+    function deletePoint(index) {
+        let db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
+        db.splice(index, 1);
+        localStorage.setItem("pointsDB", JSON.stringify(db));
+        renderDB();
+    }
+
+    function clearDB() {
+        if(confirm("هل أنت متأكد من مسح جميع النقاط؟")) {
+            localStorage.removeItem("pointsDB");
+            renderDB();
+        }
+    }
+
+    window.onload = renderDB;
+</script>
+</body>
+</html>
