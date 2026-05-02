@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ar" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>🔍 P4 البحث الذكي المطور - م. عمار يوسف</title>
+  <style>
+    :root{--main:#f59e0b;--dark:#1e293b;--bg:#f8fafc}
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left;}
+    nav{background:var(--dark); padding:10px; text-align:center; display:flex; justify-content:center; gap:8px;}
+    nav a{color:#fff; text-decoration:none; font-size:12px; font-weight:bold; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:5px;}
+    header{background:var(--main);color:#fff;padding:20px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1)}
+    header h1{margin:0;font-size:24px;font-weight:900}
+    .container{padding:12px; max-width:800px; margin:0 auto;}
+    
+    /* واجهة البحث الاحترافية */
+    .search-card{background:#fff; padding:20px; border-radius:15px; border:3px solid #000; margin-bottom:15px; position:sticky; top:10px; z-index:100;}
+    .input-group{margin-bottom:10px;}
+    .input{padding:15px; border:3px solid #000; border-radius:10px; width:100%; font-size:18px; font-weight:900; box-sizing:border-box; background:#fff; outline:none;}
+    .input:focus{border-color:var(--main); background:#fffbeb !important;}
+    
+    .stats{font-weight:900; font-size:14px; color:#666; margin-bottom:10px; display:flex; justify-content:space-between;}
+
+    /* واجهة عرض النتائج */
+    .results-grid{display:grid; grid-template-columns:1fr; gap:12px;}
+    .point-card{background:#fff; border:2px solid #e2e8f0; border-left:8px solid var(--main); padding:15px; border-radius:12px; transition:0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+    .point-card:active{transform:scale(0.98); background:#fdfcea;}
+    .point-header{display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;}
+    .point-name{font-size:20px; font-weight:900; color:#000;}
+    .point-area{background:#eee; padding:3px 8px; border-radius:5px; font-size:12px; font-weight:bold;}
+    .point-coords{display:flex; gap:15px; font-family:monospace; font-size:16px; font-weight:900; color:#2563eb;}
+    .point-desc{margin-top:8px; font-size:13px; color:#64748b; border-top:1px solid #eee; padding-top:5px;}
+    
+    .no-results{text-align:center; padding:40px; color:#94a3b8; font-weight:900;}
+    .highlight{background:#fef08a; padding:0 2px;}
+  </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html">🏠 الرئيسية</a>
+    <a href="p1_survey.html">📐 الرفع</a>
+    <a href="p2_stakeout.html">🎯 التوقيع</a>
+    <a href="p3_db_manager.html">🗄️ القاعدة</a>
+</nav>
+
+<header><h1>🔍 محرك البحث الذكي (P4)</h1><p>م. عمار يوسف - إدارة البيانات المتقدمة</p></header>
+
+<div class="container">
+    <div class="search-card">
+        <div class="input-group">
+            <input id="mainSearch" class="input" placeholder="ابحث باسم، منطقة، أو وصف..." autocomplete="off">
+        </div>
+        <div style="display:flex; gap:8px;">
+            <input id="searchX" class="input" type="number" placeholder="X (بحث بالاقتراب)" style="font-size:14px;">
+            <input id="searchY" class="input" type="number" placeholder="Y (بحث بالاقتراب)" style="font-size:14px;">
+        </div>
+        <div class="stats" style="margin-top:10px;">
+            <span>النتائج: <span id="resCount" style="color:var(--main)">0</span></span>
+            <span id="searchMode">وضع البحث: نصوص</span>
+        </div>
+    </div>
+
+    <div id="resultsGrid" class="results-grid">
+        </div>
+</div>
+
+<script>
+    let db = [];
+
+    // تحميل قاعدة البيانات
+    function loadDB() {
+        db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
+        renderResults(db);
+    }
+
+    // محرك البحث الرئيسي
+    function smartSearch() {
+        const query = document.getElementById("mainSearch").value.toLowerCase().trim();
+        const sx = parseFloat(document.getElementById("searchX").value);
+        const sy = parseFloat(document.getElementById("searchY").value);
+        
+        let filtered = [...db];
+
+        // 1. البحث النصي المركب
+        if (query) {
+            const keywords = query.split(/\s+/);
+            filtered = filtered.filter(p => {
+                const targetText = `${p.name} ${p.area} ${p.desc}`.toLowerCase();
+                return keywords.every(kw => targetText.includes(kw));
+            });
+            document.getElementById("searchMode").innerText = "وضع البحث: نصوص";
+        }
+
+        // 2. البحث بالإحداثيات (إذا تم إدخال X و Y)
+        if (!isNaN(sx) && !isNaN(sy)) {
+            filtered.forEach(p => {
+                p.dist = Math.sqrt(Math.pow(p.x - sx, 2) + Math.pow(p.y - sy, 2));
+            });
+            // ترتيب حسب الأقرب للموقع المكتوب
+            filtered.sort((a, b) => a.dist - b.dist);
+            document.getElementById("searchMode").innerText = "وضع البحث: الأقرب للموقع";
+        } else {
+            // الترتيب الأبجدي الافتراضي
+            filtered.sort((a, b) => String(a.name).localeCompare(String(b.name), 'ar'));
+        }
+
+        renderResults(filtered.slice(0, 50)); // عرض أول 50 نتيجة فقط للأداء
+    }
+
+    function renderResults(data) {
+        const grid = document.getElementById("resultsGrid");
+        const count = document.getElementById("resCount");
+        count.innerText = data.length;
+
+        if (data.length === 0) {
+            grid.innerHTML = `<div class="no-results">❌ لم يتم العثور على نتائج تطابق بحثك</div>`;
+            return;
+        }
+
+        grid.innerHTML = data.map(p => `
+            <div class="point-card" onclick="copyToClipboard('${p.x},${p.y}')">
+                <div class="point-header">
+                    <div class="point-name">${p.name}</div>
+                    <div class="point-area">${p.area || 'بدون منطقة'}</div>
+                </div>
+                <div class="point-coords">
+                    <span>X: ${p.x.toFixed(3)}</span>
+                    <span>Y: ${p.y.toFixed(3)}</span>
+                </div>
+                ${p.dist !== undefined ? `<div style="color:var(--main); font-size:12px; font-weight:bold;">📍 تبعد عنك: ${p.dist.toFixed(2)} م</div>` : ''}
+                <div class="point-desc">${p.desc || 'لا يوجد وصف متاح لهذه النقطة'}</div>
+            </div>
+        `).join("");
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        alert("📋 تم نسخ الإحداثيات!");
+    }
+
+    // مستمعات الأحداث
+    document.getElementById("mainSearch").addEventListener("input", smartSearch);
+    document.getElementById("searchX").addEventListener("input", smartSearch);
+    document.getElementById("searchY").addEventListener("input", smartSearch);
+
+    window.onload = loadDB;
+</script>
+</body>
+</html>
