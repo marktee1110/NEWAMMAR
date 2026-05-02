@@ -3,105 +3,108 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>🗄️ P3 مدير قاعدة البيانات — م. عمار يوسف</title>
-
-  <!-- إضافات الـ PWA -->
-  <link rel="manifest" href="manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA Ready ✅'))
-          .catch(err => console.log('PWA Error ❌', err));
-      });
-    }
-  </script>
-
-  <!-- استدعاء مكتبة Excel (تحتاج إنترنت لأول مرة فقط ثم تحفظ في الكاش) -->
+  <title>🗄️ P3 مدير البيانات المطور — م. عمار يوسف</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
   <style>
     :root{--main:#10b981;--danger:#ef4444;--bg:#ffffff}
-    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:#000;direction:ltr; text-align: left;}
-    nav{background:#1e293b; padding:12px; text-align:center; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;}
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);direction:ltr; text-align: left;}
+    nav{background:#1e293b; padding:12px; text-align:center; display:flex; justify-content:center; gap:10px;}
     nav a{color:#fff; text-decoration:none; font-size:14px; font-weight:bold; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:5px;}
-    header{background:var(--main);color:#fff;padding:15px;text-align:center;}
-    header h1{margin:0;font-size:24px;font-weight:900}
-    .container{max-width:980px;margin:10px auto;padding:0 8px}
+    header{background:var(--main);color:white;padding:15px;text-align:center;}
+    .container{max-width:100%; margin:10px auto; padding:0 8px}
     .card{background:#fff;padding:15px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);margin-bottom:12px;border:2px solid #000}
     .btn{padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:16px; font-weight:900; width:100%; margin-top:8px;}
-    .btn.ok{background:#000;color:#fff}
-    .btn.danger{background:var(--danger);color:#fff}
-    input[type="file"]{display:none;}
     .file-label{display:block; background:#f3f4f6; border:2px dashed #000; padding:20px; text-align:center; border-radius:10px; cursor:pointer; font-weight:900;}
-    table{width:100%; border-collapse:collapse; margin-top:10px;}
-    th,td{border:2px solid #000; padding:10px 4px; text-align:center; font-size:16px; font-weight:900;}
-    th{background:#eee; font-size:12px;}
-    .stats{display:flex; justify-content:space-between; font-weight:900; padding:10px; background:#f0f9ff; border:2px solid #000; border-radius:8px; margin-bottom:10px;}
+    
+    /* تحسين الجدول لعرض كافة الأعمدة */
+    .table-container { overflow-x: auto; max-height: 500px; border: 2px solid #000; border-radius: 8px; }
+    table{width:100%; border-collapse:collapse; min-width: 800px;}
+    th,td{border:1px solid #000; padding:10px 5px; text-align:center; font-weight:900; font-size: 14px;}
+    th{background:#eee; position: sticky; top: 0;}
+    .badge-area { background: #e0f2fe; color: #0369a1; padding: 2px 5px; border-radius: 4px; font-size: 11px; }
   </style>
 </head>
 <body>
 
 <nav>
+    <a href="index.html">🏠 الرئيسية</a>
     <a href="p1_survey.html">📐 الرفع</a>
     <a href="p2_stakeout.html">🎯 التوقيع</a>
-    <a href="p4_session_manager.html">📂 الجلسات</a>
 </nav>
 
-<header><h1>🗄️ مدير قاعدة البيانات</h1><p>م. عمار يوسف</p></header>
+<header><h1>🗄️ مدير البيانات (6 أعمدة)</h1><p>م. عمار يوسف</p></header>
 
 <div class="container">
   <div class="card">
-    <label class="file-label" for="excelFile">📂 اضغط هنا لاختيار ملف Excel (Point, X, Y)</label>
-    <input type="file" id="excelFile" accept=".xlsx, .xls">
-    <button class="btn ok" onclick="saveToDB()">💾 حفظ النقاط في الذاكرة</button>
+    <label class="file-label" for="excelFile">📂 اختر ملف الإكسل (النموذج الكامل)</label>
+    <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none">
+    <button class="btn" style="background:#000; color:#fff" onclick="saveToDB()">💾 حفظ كافة البيانات في الذاكرة</button>
   </div>
 
   <div class="card">
-    <div class="stats">
-      <span>عدد النقاط الحالي:</span>
-      <span id="count">0</span>
-    </div>
-    <div style="overflow-x:auto; max-height:400px;">
+    <div style="font-weight:900; margin-bottom:10px;">إجمالي النقاط: <span id="count">0</span></div>
+    <div class="table-container">
         <table>
-            <thead><tr><th>Point</th><th>X</th><th>Y</th><th>🗑️</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>الاسم</th>
+                    <th>المنطقة العقارية</th>
+                    <th>X</th>
+                    <th>Y</th>
+                    <th>الوصف</th>
+                    <th>⚙️</th>
+                </tr>
+            </thead>
             <tbody id="dbBody"></tbody>
         </table>
     </div>
-    <button class="btn danger" onclick="clearDB()">🗑️ مسح قاعدة البيانات بالكامل</button>
+    <button class="btn danger" onclick="clearDB()">🗑️ مسح قاعدة البيانات</button>
   </div>
 </div>
 
 <script>
     let tempPoints = [];
 
-    // قراءة ملف الإكسل
     document.getElementById('excelFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = function(event) {
             const data = new Uint8Array(event.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
-            const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
             
-            // تحويل البيانات لمصفوفة نقاط (نتوقع: Name, X, Y)
-            tempPoints = json.slice(1).map(row => ({
-                name: String(row[0]),
-                x: parseFloat(row[1]),
-                y: parseFloat(row[2])
-            })).filter(p => p.name && !isNaN(p.x) && !isNaN(p.y));
+            tempPoints = [];
+            rows.forEach((row, index) => {
+                // ترتيب الأعمدة حسب النموذج الخاص بك:
+                // row[0]: ترقيم (إهمال) | row[1]: الاسم | row[2]: منطقة | row[3]: X | row[4]: Y | row[5]: وصف
+                const pName = row[1];
+                const pArea = row[2] || "غير محدد";
+                const pX = parseFloat(row[3]);
+                const pY = parseFloat(row[4]);
+                const pDesc = row[5] || "-";
+
+                // فحص الحقول الأساسية X و Y
+                if (pName && !isNaN(pX) && !isNaN(pY)) {
+                    tempPoints.push({ 
+                        name: String(pName), 
+                        area: String(pArea),
+                        x: pX, 
+                        y: pY,
+                        desc: String(pDesc)
+                    });
+                }
+            });
             
-            alert(`تم قرءاة ${tempPoints.length} نقطة. اضغط "حفظ" للتخزين.`);
+            alert(`✅ تم العثور على ${tempPoints.length} نقطة مطابقة للنموذج.`);
         };
         reader.readAsArrayBuffer(file);
     });
 
     function saveToDB() {
-        if(tempPoints.length === 0) return alert("لا توجد بيانات للاستيراد");
+        if(tempPoints.length === 0) return alert("❌ لم يتم قراءة بيانات صالحة.");
         let db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
-        // دمج النقاط الجديدة مع القديمة ومنع التكرار بناءً على الاسم
         const combined = [...db, ...tempPoints];
         const unique = Array.from(new Set(combined.map(a => a.name)))
                             .map(name => combined.find(a => a.name === name));
@@ -109,7 +112,7 @@
         localStorage.setItem("pointsDB", JSON.stringify(unique));
         tempPoints = [];
         renderDB();
-        alert("تم الحفظ في ذاكرة الهاتف بنجاح ✅");
+        alert("✔️ تم الحفظ بنجاح! كافة التفاصيل متاحة الآن.");
     }
 
     function renderDB() {
@@ -117,26 +120,26 @@
         document.getElementById("count").innerText = db.length;
         document.getElementById("dbBody").innerHTML = db.map((p, i) => `
             <tr>
+                <td>${i+1}</td>
                 <td>${p.name}</td>
-                <td>${p.x.toFixed(2)}</td>
-                <td>${p.y.toFixed(2)}</td>
-                <td><button onclick="deletePoint(${i})" style="border:none; color:red; background:none; font-weight:900;">🗑</button></td>
+                <td><span class="badge-area">${p.area}</span></td>
+                <td style="color:#0284c7">${p.x.toFixed(3)}</td>
+                <td style="color:#0284c7">${p.y.toFixed(3)}</td>
+                <td style="font-size:11px">${p.desc}</td>
+                <td><button onclick="deletePoint(${i})" style="color:red; background:none; border:none; font-weight:900;">🗑</button></td>
             </tr>
         `).join("");
     }
 
-    function deletePoint(index) {
+    function deletePoint(i) {
         let db = JSON.parse(localStorage.getItem("pointsDB") || "[]");
-        db.splice(index, 1);
+        db.splice(i, 1);
         localStorage.setItem("pointsDB", JSON.stringify(db));
         renderDB();
     }
 
     function clearDB() {
-        if(confirm("هل أنت متأكد من مسح جميع النقاط؟")) {
-            localStorage.removeItem("pointsDB");
-            renderDB();
-        }
+        if(confirm("مسح الكل؟")) { localStorage.removeItem("pointsDB"); renderDB(); }
     }
 
     window.onload = renderDB;
